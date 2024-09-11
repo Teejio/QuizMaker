@@ -1,0 +1,322 @@
+<!doctype html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+
+        <title>Mini Quiz Creator</title>
+
+        <!-- Load external CSS styles -->
+        <link rel="stylesheet" href="styles.css">
+
+    </head>
+
+    <body>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playwrite+IS:wght@100..400&display=swap');
+
+
+    body {
+        
+        background-color: #322;
+    margin: 0;
+    padding: 0;
+
+    }
+
+*{
+ font-family: "Comic Sans MS", "Comic Sans", cursive;
+}
+    h1{
+
+       
+        color: white;
+        background-color: #975;
+        margin: 0px;
+        height: 70px;
+        font-size: 3em; /* 40px/16=2.5em */
+
+        padding: 5px;
+
+    }
+    button{
+        border-radius: 6px;
+    }
+    .pluh {
+        justify-content: space-between;
+        width: 100vw;
+        background-color: #864;
+        border-radius: 0px 0px 2rem;
+        margin: 0px 0px 10px 0px;
+        padding: 10px 0px 10px 10px;
+    }
+
+    #newQ{
+width: 30px;
+height: 30px;
+font-size: 1rem;
+background-color: white;
+transition-duration: 1s;
+    }
+
+#newQ:hover{
+width: 32px;
+height: 32px;
+background-color: grey;
+transition-duration: 0.1s;
+    }
+
+.newA{
+width: 25px;
+height: 25px;
+font-size: 1rem;
+background-color: #666;
+color: white;
+transition-duration: 1s;
+margin: 10px 0px 10px 0px;
+    }
+
+input {
+border-radius: 5px;
+padding: 5px;
+
+}
+
+.answer {
+
+    background-color: #333;
+    color: white;
+    
+}
+.newA:hover{
+width: 30px;
+height: 27px;
+background-color: #333;
+transition-duration: 0.1s;
+    }
+
+.yay{
+background-color: #1a0900;
+width: 500px;
+padding: 0px;
+border-radius: 10px;
+
+margin: 0px 0px 10px 0px;
+}
+
+    
+ol{
+
+color: white;
+}
+
+ol ol {
+  list-style-type: upper-roman;
+}
+</style>
+        <h1>Question Creator</h1>
+
+<div class = 'pluh'>
+        <button class = "menu" onclick = "writeJSON(false)">Save Questions</button>     
+        
+        <button  class = "menu" onclick = "doLoad(false);"> Load Questions</button>
+        <button  class = "menu" onclick = "doLoad(true);">Add Questions from JSON</button>
+        <button  class = "menu" onclick = "writeJSON(true)">Export Questions</button>  
+</div>
+        <ol id = "questions">
+            <button onclick = "addQ()" id= "newQ">+</button>
+        </ol>   
+        <!-- Load external JavaScript -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/sha1.js"></script>
+<script>
+    addQ();
+    var hash = CryptoJS.SHA1("Message");
+    //window.alert(hash);
+
+    class Question{
+    
+      constructor(question, answers, encyrpt) {
+            this.q = question;
+
+            if (encyrpt){
+                this.a = [];
+                for (var answer in answers){
+                    this.a.push(CryptoJS.SHA1(answers[answer]).toString());
+                }
+            }
+            else{
+            this.a = answers;
+            
+            }
+
+
+        }
+    }
+
+
+let willAdd = false;
+
+const elem = document.createElement("input");
+elem.type = "file";
+elem.accept = ".json";
+
+function doLoad(addendum){
+willAdd = addendum;
+elem.click();
+
+}
+
+var saveData = (function () {
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+    return function (data, fileName) {
+        
+            blob = new Blob([data], {type: "application/json"}),
+            url = window.URL.createObjectURL(blob);
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+}());
+
+
+elem.addEventListener("change", loadJSON, false);
+
+    function loadJSON(){
+
+
+    
+          const reader = new FileReader();
+        reader.readAsText(elem.files[0])
+        reader.onload = function(){ loadQuestions(reader.result);}
+    }
+
+
+
+
+
+
+    function writeJSON(encyrpt){
+        
+        let json = {comment: `${(encyrpt)? "hahah its encyrpted idiot": "hey this is save data DO NOT TRY TO PUT THIS IN THE QUIZ IN WONT WORK"}`, problems: []};
+        
+
+        let list = document.getElementById("questions");
+        for (let i = 0; i < list.children.length-1;i++){
+            var q;
+            let a = [];
+
+            let qGroup = list.children[i];
+            q = qGroup.children[0].value;
+            
+            let aGroup = qGroup.children[1];
+            for (let j = 0; j < aGroup.children.length-1;j++){
+                let d = aGroup.children[j];
+                a.push(d.children[0].value);
+
+
+            }
+
+            var test = new Question(q,a,encyrpt);
+            json.problems.push(test);
+
+        }
+        //var test = new Question("question",["a", "b", "c"],false);
+        //json.problems.push(test);
+
+        let jString =JSON.stringify(json, `\n`, "\t");
+        window.alert(jString);
+        saveData(jString, `${(encyrpt)? "question": "SAVETABLE" }.json`);
+    
+    }
+
+    function addA(a, fQ = ""){
+    var b  = a.parentNode;
+    a.remove();
+    let c = document.createElement("li");
+    
+    let d = document.createElement("button");
+    d.onclick = function(){addA(d)};
+    d.innerHTML = "+";
+
+    d.classList.add('newA');
+    c.innerHTML = `<input onchange = "deleteAnswer(this)" class = "answer" value = "${fQ}" oninput="this.value = this.value.toUpperCase()" placeholder = "Correct Answer" type = "text">`;
+    b.appendChild(c); 
+    b.appendChild(d); 
+
+    return d;
+    }
+
+
+function deleteQuestion(element){
+if (element.value == ""){
+element.parentNode.remove();
+}
+
+}
+
+function deleteAnswer(element){
+if (element.value == ""){
+element.parentNode.remove();
+}
+
+}
+
+    function addQ(desc = "", fQ = ""){
+    document.getElementById("newQ").remove();
+    let d = document.createElement("button");
+    d.onclick = function(){addQ()};
+    d.id = "newQ";
+    d.innerHTML = "+";
+    let c = document.createElement("li");
+    c.classList.add('yay');
+    c.innerHTML = `<input  onchange = "deleteQuestion(this)" value = "${desc}" placeholder = "Write Question" type = "text">
+                    <ol>
+                        <li>
+                            <input onchange = "deleteAnswer(this)" class = "answer" input value = "${fQ}" oninput="this.value = this.value.toUpperCase()"  placeholder = "Correct Answer" type = "text">
+                        </li>
+
+                        <button onclick="addA(this)" class= "newA">+</button>
+                    </ol>`;
+    document.getElementById("questions").appendChild(c);
+        document.getElementById("questions").appendChild(d);
+       // window.alert(c.children[1].children[1]);
+        return c.children[1].children[1];
+    }
+
+
+    function loadQuestions(result){
+        let quiz = JSON.parse(result);
+        window.alert(quiz.comment);
+
+        if (!willAdd){
+
+
+        document.getElementById("questions").innerHTML = ` <button onclick = "addQ()" id= "newQ">+</button>`;
+
+}
+
+
+        for (const a in quiz.problems){
+            let problem = quiz.problems[a];
+
+            let d = addQ(problem.q, problem.a[0]);
+            for (let i = 1; i < problem.a.length; i++){
+                d = addA( d, problem.a[i]);
+
+            }
+
+        }
+    }
+
+
+</script>
+        <script src="scripts.js"></script>
+        
+        
+    </body>
+
+</html>
